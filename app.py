@@ -8,9 +8,6 @@ import logging
 from datetime import datetime
 import sys
 
-# =========================
-# LOFResampler (merged here)
-# =========================
 from imblearn.base import BaseSampler
 from sklearn.neighbors import LocalOutlierFactor
 
