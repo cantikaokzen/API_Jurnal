@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Breast Cancer Prediction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --panel:#12141b;
+      --panel2:#161a24;
+      --text:#e8e9ee;
+      --muted:#b4b7c5;
+      --line:#232839;
+      --accent:#ff4d4d;     /* "Prediction" merah */
+      --teal:#29d3c5;       /* icon/aksen */
+      --shadow: 0 20px 60px rgba(0,0,0,.55);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 500px at 50% 15%, rgba(255,77,77,.12), transparent 55%),
+        radial-gradient(900px 500px at 50% 65%, rgba(41,211,197,.10), transparent 60%),
+        linear-gradient(180deg,#08090c 0%, #0b0c10 40%, #08090c 100%);
+      min-height:100vh;
+    }
+    a{ color:inherit; text-decoration:none; }
+    .wrap{ width:min(1100px, 92%); margin:0 auto; }
+    .nav{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: rgba(11,12,16,.55);
+      border-bottom:1px solid rgba(35,40,57,.55);
+    }
+    .nav-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:16px 0;
+    }
+    .brand{
+      display:flex; gap:10px; align-items:center; font-weight:800; letter-spacing:.4px;
+    }
+    .logo{
+      width:26px;height:26px;border-radius:8px;
+      background: linear-gradient(135deg, rgba(41,211,197,.9), rgba(255,77,77,.9));
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+    }
+    .menu{ display:flex; gap:18px; align-items:center; color:var(--muted); font-weight:600; }
+    .menu a{ padding:8px 10px; border-radius:10px; }
+    .menu a.active, .menu a:hover{
+      color:var(--text);
+      background: rgba(255,255,255,.06);
+    }
+    .github{
+      display:flex; align-items:center; gap:8px; color:var(--muted); font-weight:600;
+      padding:8px 12px; border:1px solid rgba(35,40,57,.85);
+      border-radius:12px;
+      background: rgba(255,255,255,.03);
+    }
+    .hero{
+      padding:64px 0 28px;
+      text-align:center;
+    }
+    .title{
+      margin:0;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing:.2px;
+    }
+    .title span{ color:var(--accent); }
+    .subtitle{
+      margin:10px auto 0;
+      color:var(--muted);
+      max-width: 720px;
+      font-weight:500;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(18,20,27,.92), rgba(18,20,27,.72));
+      border:1px solid rgba(35,40,57,.85);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .section{
+      padding:28px 0 64px;
+    }
+    .section h2{
+      margin:0 0 12px;
+      font-size: 20px;
+      text-align:center;
+      color: var(--text);
+    }
+    .feature-card{
+      padding:28px;
+    }
+    .features{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+      margin-top:18px;
+    }
+    .feat{
+      padding:18px 16px;
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(35,40,57,.65);
+      border-radius: 14px;
+    }
+    .feat .icon{
+      width:38px;height:38px;border-radius:12px;
+      display:grid;place-items:center;
+      background: rgba(41,211,197,.12);
+      border:1px solid rgba(41,211,197,.35);
+      margin:0 auto 10px;
+      color: var(--teal);
+      font-weight:900;
+    }
+    .feat h3{ margin:8px 0 8px; text-align:center; font-size:14px; }
+    .feat p{ margin:0; color:var(--muted); font-size:12.5px; text-align:center; line-height:1.4; }
+
+    /* Docs layout */
+    .docs-grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+      margin-top:18px;
+    }
+    .stack{ display:grid; gap:16px; }
+    .doc-box{ padding:18px; }
+    .doc-box h3{ margin:0 0 10px; font-size:14px; }
+    .doc-box p{ margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
+    .doc-box.small h3{ text-align:center; }
+    .doc-box.small p{ text-align:center; }
+
+    /* Tools (form) */
+    .form-card{ padding:22px; max-width: 820px; margin: 0 auto; }
+    .form-title{
+      text-align:center;
+      margin:0 0 6px;
+      font-size:16px;
+      font-weight:800;
+    }
+    .form-sub{
+      text-align:center;
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    form{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:12px 14px;
+      margin-top:8px;
+    }
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+      font-weight:600;
+    }
+    input{
+      width:100%;
+      padding:11px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(35,40,57,.85);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      outline:none;
+    }
+    input:focus{
+      border-color: rgba(41,211,197,.55);
+      box-shadow: 0 0 0 4px rgba(41,211,197,.12);
+    }
+    .actions{
+      grid-column: 1 / -1;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:6px;
+    }
+    button{
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid rgba(35,40,57,.85);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:700;
+      cursor:pointer;
+    }
+    button.primary{
+      background: linear-gradient(135deg, rgba(255,77,77,.9), rgba(255,77,77,.65));
+      border-color: rgba(255,77,77,.35);
+    }
+    button:disabled{ opacity:.6; cursor:not-allowed; }
+    .result{
+      grid-column: 1 / -1;
+      margin-top:10px;
+      padding:14px;
+      border-radius: 14px;
+      border:1px dashed rgba(35,40,57,.85);
+      background: rgba(255,255,255,.03);
+      display:none;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:800;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(35,40,57,.85);
+      background: rgba(255,255,255,.04);
+    }
+    .badge.good{ border-color: rgba(41,211,197,.45); }
+    .badge.bad{ border-color: rgba(255,77,77,.45); }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+      color: var(--muted);
+      font-size:13px;
+    }
+    .muted{ color: var(--muted); }
+    .foot{
+      padding:28px 0 34px;
+      text-align:center;
+      color:rgba(180,183,197,.75);
+      font-size:12px;
+      border-top:1px solid rgba(35,40,57,.55);
+    }
+
+    @media (max-width: 900px){
+      .features{ grid-template-columns: 1fr; }
+      .docs-grid{ grid-template-columns: 1fr; }
+      form{ grid-template-columns: 1fr; }
+      .actions{ justify-content:stretch; }
+      button{ flex:1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="nav">
+    <div class="wrap nav-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>NOYB</div>
+      </div>
+
+      <div class="menu" id="menu">
+        <a href="#home" class="active">Home</a>
+        <a href="#docs">Docs</a>
+        <a href="#tools">Tools</a>
+      </div>
+
+      <a class="github" href="https://github.com/" target="_blank" rel="noreferrer">
+        Github <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- HOME / LANDING -->
+  <section id="home" class="wrap">
+    <div class="hero">
+      <h1 class="title">Breast Cancer <span>Prediction</span></h1>
+      <p class="subtitle">Advance Artificial Intelligence analysis for breast cancer</p>
+    </div>
+
+    <div class="section">
+      <div class="card feature-card">
+        <h2>Feature</h2>
+        <div class="features">
+          <div class="feat">
+            <div class="icon">📈</div>
+            <h3>Accurate Analysis</h3>
+            <p>Prediksi otomatis berbasis machine learning untuk membantu klasifikasi kanker payudara secara cepat dan konsisten.</p>
+          </div>
+          <div class="feat">
+            <div class="icon">🩺</div>
+            <h3>Medical Data Required</h3>
+            <p>Masukkan 10 fitur numerik (radius, perimeter, area, concavity, concave points(mean & worst)). Sistem akan memproses input sesuai pipeline training.</p>
+          </div>
+          <div class="feat">
+            <div class="icon">💡</div>
+            <h3>Health Insights</h3>
+            <p>Hasil menampilkan label prediksi (Benign/Malignant) beserta probabilitas sehingga lebih mudah dipahami dan bisa jadi bahan pertimbangan awal. Bukan diagnosis final, tetap perlu konfirmasi dokter.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCS / ABOUT -->
+  <section id="docs" class="wrap section">
+    <div class="hero" style="padding-top: 10px;">
+      <h1 class="title" style="font-size:34px;">Breast Cancer <span>Prediction</span></h1>
+      <p class="subtitle">All Information About Project</p>
+    </div>
+
+    <div class="docs-grid">
+      <div class="stack">
+        <div class="card doc-box">
+          <h3 style="text-align:center;">Overview</h3>
+          <p style="text-align:center;">
+            Klasifikasi kanker payudara secara dini dan akurat sangat penting untuk membantu proses diagnosis klinis dan meningkatkan peluang kesembuhan. Penelitian ini menyusun pipeline machine learning berbasis Gradient Boosted Trees untuk mengklasifikasikan tumor menjadi Benign (jinak) dan Malignant (ganas), dengan preprocessing yang kuat agar hasil prediksi lebih andal.
+          </p>
+        </div>
+
+        <div class="stack" style="grid-template-columns: 1fr 1fr; display:grid;">
+          <div class="card doc-box small">
+            <h3>Problems</h3>
+            <p>Masalah utama kanker payudara adalah banyak pasien datang berobat saat stadium lanjut, sehingga peluang hidup menurun drastis. Padahal jika terdeteksi dini, peluang bertahan hidup bisa sangat tinggi. Karena itu dibutuhkan sistem prediksi berbasis data yang dapat membantu deteksi/klasifikasi lebih cepat dan tepat.</p>
+          </div>
+          <div class="card doc-box small">
+            <h3>Research</h3>
+            <p>Penelitian ini membangun pipeline ML yang mencakup: normalisasi fitur (StandardScaler), penanganan outlier (LOF), penyeimbangan kelas (SMOTE), dan seleksi fitur (ANOVA SelectKBest). Setelah itu, dilakukan perbandingan 5 model Gradient Boosted Trees (XGBoost, LightGBM, CatBoost, HistGradientBoosting, GradientBoosting) menggunakan metrik akurasi, precision, recall, F1-score, dan ROC-AUC. Model terbaik dianalisis interpretabilitasnya menggunakan SHAP agar fitur yang paling berpengaruh dapat dipahami.</p>
+          </div>
+        </div>
+
+        <div class="card doc-box">
+          <h3 style="text-align:center;">Dataset Information</h3>
+          <p style="text-align:center;">
+            Dataset kanker payudara yang digunakan berisi 569 sampel dengan 31 fitur numerik dan 1 label diagnosis, serta tidak ditemukan missing value. Distribusi kelas tidak seimbang: 357 Benign dan 212 Malignant, sehingga diperlukan teknik penyeimbangan kelas pada preprocessing.
+          </p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card doc-box small">
+          <h3>Model</h3>
+          <p>Sistem menggunakan algoritma Gradient Boosted Trees dengan pipeline preprocessing lengkap. Dari semua model yang diuji, CatBoost dipilih sebagai model utama karena memperoleh ROC-AUC tertinggi dan performa yang stabil; meskipun secara statistik perbedaan ROC-AUC antar model tidak signifikan, CatBoost tetap unggul secara numerik dan dipakai untuk analisis SHAP.</p>
+        </div>
+        <div class="card doc-box small">
+          <h3>Accuracy Results</h3>
+          <p>Pada penelitian ini, hasil terbaik diperoleh oleh CatBoost dengan ROC-AUC 0,9960 dan akurasi 0,9649. Untuk performa klasifikasi, CatBoost mencapai precision 0,9595, recall 0,9861, dan F1-score 0,9726 pada kelas Benign (0), serta precision 0,9750, recall 0,9286, dan F1-score 0,9512 pada kelas Malignant (1). Selain itu, uji DeLong menunjukkan p > 0,05, yang berarti perbedaan ROC-AUC antar model boosting yang diuji tidak signifikan secara statistik, sehingga performanya relatif sebanding, namun CatBoost tetap dipilih karena nilai numeriknya paling tinggi dan stabil.</p>
+        </div>
+        <div class="card doc-box small">
+          <h3>Information About Data Input</h3>
+          <p>Data yang dimasukkan ke sistem adalah 10 fitur tumor hasil seleksi SelectKBest (K=10), yaitu: radius_mean, perimeter_mean, area_mean, concavity_mean, concave_points_mean, radius_worst, perimeter_worst, area_worst, concavity_worst, dan concave_points_worst. Sepuluh fitur ini kemudian dipakai sebagai input utama model Gradient Boosted Trees, dan sistem mengeluarkan prediksi kelas (Benign/Malignant) beserta probabilitasnya.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS / PREDICT -->
+  <section id="tools" class="wrap section">
+    <div class="hero" style="padding-top: 10px;">
+      <h1 class="title" style="font-size:34px;">Breast Cancer <span>Prediction</span></h1>
+      <p class="subtitle">Insert Medical Data of Breast Cancer</p>
+    </div>
+
+    <div class="card form-card">
+      <p class="form-title">Patient Information Form</p>
+      <p class="form-sub">Isi 10 fitur berikut, lalu klik <b>Predict</b>.</p>
+
+      <form id="predictForm">
+        <!-- 10 inputs -->
+        <div>
+          <label>radius_mean (rata-rata jarak pusat inti ke tepi)</label>
+          <input name="radius_mean" type="number" step="any" placeholder="contoh: 11.2" required>
+        </div>
+        <div>
+          <label>radius_worst (radius terbesar/ekstrem)</label>
+          <input name="radius_worst" type="number" step="any" placeholder="contoh: 12.6" required>
+        </div>
+
+        <div>
+          <label>perimeter_mean (rata-rata keliling inti)</label>
+          <input name="perimeter_mean" type="number" step="any" placeholder="contoh: 71.2" required>
+        </div>
+        <div>
+          <label>perimeter_worst (keliling terbesar/ekstrem)</label>
+          <input name="perimeter_worst" type="number" step="any" placeholder="contoh: 80.0" required>
+        </div>
+
+        <div>
+          <label>area_mean (rata-rata luas inti)</label>
+          <input name="area_mean" type="number" step="any" placeholder="contoh: 380.0" required>
+        </div>
+        <div>
+          <label>area_worst (luas terbesar/ekstrem)</label>
+          <input name="area_worst" type="number" step="any" placeholder="contoh: 470.0" required>
+        </div>
+
+        <div>
+          <label>concavity_mean (rata-rata cekungan tepi inti)</label>
+          <input name="concavity_mean" type="number" step="any" placeholder="contoh: 0.03" required>
+        </div>
+        <div>
+          <label>concavity_worst (cekungan terbesar/ekstrem)</label>
+          <input name="concavity_worst" type="number" step="any" placeholder="contoh: 0.08" required>
+        </div>
+
+        <div>
+          <label>concave_points_mean (rata-rata titik cekung)</label>
+          <input name="concave_points_mean" type="number" step="any" placeholder="contoh: 0.015" required>
+        </div>
+        <div>
+          <label>concave_points_worst (titik cekung terbesar/ekstrem)</label>
+          <input name="concave_points_worst" type="number" step="any" placeholder="contoh: 0.03" required>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="btnReset">Reset</button>
+          <button class="primary" type="button" id="btnPredict">Predict</button>
+        </div>
+
+        <div class="result" id="resultBox">
+          <div id="resultTop"></div>
+          <div class="grid2" id="resultGrid"></div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+
+  <script>
+    // Ganti kalau API kamu beda domain/port (default: sama host)
+    const API_BASE = "";
+
+    const menu = document.getElementById("menu");
+    const links = [...menu.querySelectorAll("a")];
+
+    function setActive(hash){
+      links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === hash));
+    }
+
+    window.addEventListener("hashchange", () => setActive(location.hash || "#home"));
+    setActive(location.hash || "#home");
+
+    const form = document.getElementById("predictForm");
+    const btnReset = document.getElementById("btnReset");
+    const btnPredict = document.getElementById("btnPredict");
+    const resultBox = document.getElementById("resultBox");
+    const resultTop = document.getElementById("resultTop");
+    const resultGrid = document.getElementById("resultGrid");
+
+    function showResult(data){
+      resultBox.style.display = "block";
+      const label = data.predicted_label || data.predictedLabel || "-";
+      const probs = data.probabilities || {};
+      const benign = probs.Benign ?? probs.benign ?? null;
+      const malignant = probs.Malignant ?? probs.malignant ?? null;
+
+      const isBenign = String(label).toLowerCase().includes("benign");
+
+      resultTop.innerHTML = `
+      <div class="badge ${isBenign ? "good" : "bad"}">
+        Hasil: ${label}
+      </div>
+      `;
+
+      resultGrid.innerHTML = `
+        <div>Probabilitas Benign: <b>${benign !== null ? benign : "-"}</b></div>
+        <div>Probabilitas Malignant: <b>${malignant !== null ? malignant : "-"}</b></div>
+      `;
+    }
+
+    function showError(msg){
+      resultBox.style.display = "block";
+      resultTop.innerHTML = `<div class="badge bad">Error: ${msg}</div>`;
+      resultGrid.innerHTML = "";
+    }
+
+    btnReset.addEventListener("click", () => {
+      form.reset();
+      resultBox.style.display = "none";
+    });
+
+    btnPredict.addEventListener("click", async () => {
+      btnPredict.disabled = true;
+      btnPredict.textContent = "Predicting...";
+
+      try{
+      const fd = new FormData(form);
+      const payload = Object.fromEntries(fd.entries());
+      for (const k in payload) {
+        payload[k] = Number(payload[k]);
+        if (Number.isNaN(payload[k])) {
+          throw new Error(`Input ${k} kosong / tidak valid`);
+       }
+     }
+
+      const res = await fetch(`http://127.0.0.1:5000/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await res.text();
+      let data = {};
+      try { data = text ? JSON.parse(text) : {}; }
+      catch { throw new Error("Response bukan JSON: " + text.slice(0, 200)); }
+
+      if (!res.ok || data.success === false) {
+          throw new Error(data.error || `HTTP ${res.status}: ${text.slice(0, 200)}`);
+      }
+
+      showResult(data);
+    } catch(err){
+      showError(err.message || "Internal error");
+    } finally{
+      btnPredict.disabled = false;
+      btnPredict.textContent = "Predict";
+    }
+  });
+  </script>
+</body>
+</html>

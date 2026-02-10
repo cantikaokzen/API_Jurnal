@@ -1,0 +1,8 @@
+Flask
+numpy
+scikit-learn
+python-dotenv
+flask-cors
+flasgger
+joblib
+imbalanced-learn
