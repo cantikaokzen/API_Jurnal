@@ -2,42 +2,37 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flasgger import Swagger, swag_from
 
-import pandas as pd
-import joblib
 import logging
 from datetime import datetime
-import sys
-
-from imblearn.base import BaseSampler
-from sklearn.neighbors import LocalOutlierFactor
-
-class LOFResampler(BaseSampler):
-    _sampling_type = "clean-sampling"
-    _parameter_constraints = {}
-
-    def __init__(self, n_neighbors=20, contamination=0.05):
-        super().__init__()
-        self.n_neighbors = n_neighbors
-        self.contamination = contamination
-        self.sampling_strategy = "auto"
-
-    def _fit_resample(self, X, y):
-        lof = LocalOutlierFactor(
-            n_neighbors=self.n_neighbors,
-            contamination=self.contamination
-        )
-        pred = lof.fit_predict(X)
-        mask = (pred == 1)
-        return X[mask], y[mask]
-
-# IMPORTANT: so pickle that references __main__.LOFResampler can find it
-setattr(sys.modules["__main__"], "LOFResampler", LOFResampler)
+from catboost import CatBoostClassifier
+import json
+import numpy as np
 
 # =========================
-# Load model
+# Load resources
 # =========================
-model = joblib.load("catboost_pipeline.joblib")
-required_cols = list(model.feature_names_in_)
+try:
+    # Load Preprocessing Params
+    with open("preprocessing.json", "r") as f:
+        preproc_params = json.load(f)
+    
+    # Extract mean and scale for the selected features
+    # We know the selected indices from the JSON
+    selected_indices = preproc_params["selector"]["indices"]
+    all_means = preproc_params["scaler"]["mean"]
+    all_scales = preproc_params["scaler"]["scale"]
+    
+    # Filter means and scales for the 10 selected features
+    MODEL_MEANS = [all_means[i] for i in selected_indices]
+    MODEL_SCALES = [all_scales[i] for i in selected_indices]
+    
+    # Load Model
+    model = CatBoostClassifier()
+    model.load_model("catboost_model.cbm")
+    
+except Exception as e:
+    logging.error(f"Failed to load model or parameters: {e}")
+    raise e
 
 # =========================
 # Logging
@@ -57,14 +52,14 @@ swagger = Swagger(app)
 
 @app.route("/ui")
 def ui():
-    return send_from_directory(".", "index.html")  # index.html sejajar app.py
+    return send_from_directory(".", "index.html")
 
 @app.route("/")
 def home():
-    return jsonify({"message": "Test API"})
+    return jsonify({"message": "Breast Cancer API (Lite)"})
 
 # =========================
-# Swagger spec (same as yours)
+# Swagger spec
 # =========================
 PREDICT_SWAGGER = {
     "tags": ["Prediction"],
@@ -131,6 +126,8 @@ def predict():
         data = request.get_json(force=True)
         logging.info(f"Received prediction request: {data}")
 
+        # Exact order matching the selected indices (0, 2, 3, 6, 7, 20, 22, 23, 26, 27)
+        # Matches the user input fields
         user_feature_names = [
             "radius_mean", "perimeter_mean", "area_mean",
             "concavity_mean", "concave_points_mean",
@@ -142,24 +139,24 @@ def predict():
         if missing:
             return jsonify({"success": False, "error": f"Missing fields: {missing}"}), 400
 
-        X = pd.DataFrame([{
-            f: float(data[f]) for f in user_feature_names
-        }])
+        # Construct vector
+        raw_values = [float(data[f]) for f in user_feature_names]
+        
+        # Manual Scaling: (x - mean) / scale
+        scaled_values = []
+        for val, mean, scale in zip(raw_values, MODEL_MEANS, MODEL_SCALES):
+            scaled_values.append((val - mean) / scale)
 
-        # add missing cols required by model with 0.0
-        for col in required_cols:
-            if col not in X.columns:
-                X[col] = 0.0
-
-        X = X[required_cols]
-
+        # Predict
+        # CatBoost expects a list of lists (samples)
+        X = [scaled_values] 
+        
         predicted = int(model.predict(X)[0])
         proba_all = model.predict_proba(X)[0]
         classes = list(model.classes_)
 
         idx_1 = classes.index(1) if 1 in classes else None
         if idx_1 is None:
-            # fallback if classes are not [0,1]
             prob_malignant = float(max(proba_all))
         else:
             prob_malignant = float(proba_all[idx_1])
@@ -186,5 +183,4 @@ def predict():
 
 
 if __name__ == "__main__":
-    # For local only. On deploy, use gunicorn (see note below).
     app.run(host="0.0.0.0", port=5000, debug=True)
